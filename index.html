@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <title>Hello, world!</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 导航栏 -->
+        <div class="row">
+            <div class="col-sm">
+
+                <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+                    <span class="navbar-brand mb-0 h1">Supervisor Console</span>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="#">进程管理 <span class="sr-only">(current)</span></a>
+                            </li>
+                            <!-- <li class="nav-item">
+                                <a class="nav-link" href="#">vo/repo生成</a>
+                            </li> -->
+                        </ul>
+                    </div>
+                </nav>
+
+            </div>
+        </div>
+
+        <!-- 面包屑 -->
+        <div class="row">
+            <div class="col-sm">
+
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">进程管理</li>
+                    </ol>
+                </nav>
+
+            </div>
+        </div>
+
+        <div class="row" id="app">
+
+            <!-- 模态框 -->
+            <modal v-if="showModal" :uploading="uploading" v-model="uploadFile.fileDir" @submit="submitForm($event)" @change="getFile($event)" @close="showModal = false">
+            </modal>
+
+            <div class="col-sm">
+
+                <!-- loading ui -->
+                <template v-if="loading">
+                    <div class="d-flex justify-content-center">
+                            <div class="spinner-grow text-success" style="width: 3rem; height: 3rem;" role="status">
+                                    <span class="sr-only">Loading...</span>
+                            </div>
+                    </div>
+                </template>
+
+                <template v-else>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row">
+                                <ul class="nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link disabled" href="#">
+                                            进程列表
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-toggle="tooltip" data-placement="top" title="刷新" href="#" @click="oprateAllProcess(0)">
+                                            <i class="material-icons">
+                                                refresh
+                                            </i>
+                                        </a>
+                                    </li>
+                                    <!-- <li class="nav-item">
+                                        <a class="nav-link" href="#" @click="oprateAllProcess(1)">Restart All</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" @click="oprateAllProcess(2)">Stop All</a>
+                                    </li>
+                                    -->
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-toggle="tooltip" data-placement="top" title="文件上传" href="#" @click="showModal = true">
+                                            <i class="material-icons">
+                                                cloud_upload
+                                            </i>
+                                        </a>
+                                    </li> 
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+
+                            <table class="table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="test">名称</th>
+                                        <th scope="col">描述</th>
+                                        <th scope="col">状态</th>
+                                        <th scope="col">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in processList" :key="index">
+                                        <th scope="row">{{ item.name }}</th>
+                                        <td>{{ item.description }}</td>
+                                        <td><span class="badge"
+                                                :class="item.state |turnToStateStyle">{{ item.state |turnToState  }}</span>
+                                        </td>
+                                        <td>
+                                            <template v-if="item.loading">
+                                                <button class="btn btn-success btn-sm" type="button" disabled>
+                                                    <span class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    Loading...
+                                                </button>
+                                            </template>
+                <template v-else>
+                                                    <a v-if="item.state == 0" href="#" @click="oprateProcess(item.name, 0, index)">start</a>
+                                                    <a v-else href="#" @click="oprateProcess(item.name, 2, index)">stop</a>
+                                                    <span>|</span>
+                                                    <a href="#" @click="oprateProcess(item.name, 1, index)">restart</a>
+                                                    <span>|</span>
+                                                    <a href="#" @click="oprateProcess(item.name, 3, index)">clearlog</a>
+                                                    <span>|</span>
+                                                    <a :href="'/console/process/log/tail/' + item.name" target="_blank">tail -f</a>
+                                            </template>
+                </td>
+                </tr>
+                </tbody>
+                </table>
+
+            </div>
+        </div>
+        </template>
+
+    </div>
+    </div>
+    </div>
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <span class="text-muted">beta v-0.01 Copyright © 2019 Supervisor Console.</span>
+        </div>
+    </footer>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vue-toasted"></script>
+<!-- template for the modal component -->
+<script type="text/x-template" id="modal-template">
+    <transition name="modal">
+        <div class="modal-mask">
+            <div class="modal-wrapper">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <slot name="header">
+                            <h6>文件上传</h6>
+                        </slot>
+                    </div>
+
+                    <div class="modal-body">
+                        <slot name="body">
+                            <!-- loading ui -->
+                            <template v-if="uploading">
+                            <div class="d-flex justify-content-center">
+                                <div class="spinner-grow text-success" style="width: 3rem; height: 3rem;" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                        </template>
+                            <template v-else>
+                            <form>
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1">上传目录</label>
+                                    <input type="text" class="form-control" id="fileDir" :value="value" @input="$emit('input', $event.target.value)" aria-describedby="uploadHelp" placeholder="请输入文件上传目录">
+                            <small id="uploadHelp" class="form-text text-muted">* 请确保该目录已经存在(e.g./webserver/deploy)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleFormControlFile1">文件</label>
+                        <input type="file" class="form-control-file" id="exampleFormControlFile1" @change="$emit('change', $event.target.files[0])">
+                        <template v-html="uploadFileErrMsg.file"></template>
+                    </div>
+                    </form>
+                    </template>
+                    </slot>
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <template v-if="uploading">  
+                                <button class="btn btn-success btn-sm" type="button" disabled>
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    Uploading...
+                                </button>
+                            </template>
+                        <template v-else>
+                                <button type="button" class="btn btn-secondary btn-sm" @click="$emit('close')">取消</button>
+                                <button type="button" class="btn btn-success btn-sm" @click="$emit('submit', $event)">提交</button>
+                            </template>
+                    </slot>
+                </div>
+            </div>
+        </div>
+        </div>
+    </transition>
+</script>
+<script src="js/app.js"></script>
